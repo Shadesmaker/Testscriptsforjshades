@@ -1,47 +1,39 @@
--- [[ ADVANCED TABBED HUB ]] --
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-local TeleportService = game:GetService("TeleportService")
-local HttpService = game:GetService("HttpService")
+local Lighting = game:GetService("Lighting")
 
--- Create GUI
+-- GUI SETUP
 local ScreenGui = Instance.new("ScreenGui", player.PlayerGui)
-ScreenGui.Name = "HackerHub"
+ScreenGui.Name = "HackerHub_V2"
 ScreenGui.ResetOnSpawn = false
 
--- Toggle Button (White Square)
+-- TOGGLE BUTTON (WHITE SQUARE)
 local ToggleBtn = Instance.new("TextButton", ScreenGui)
 ToggleBtn.Size = UDim2.new(0, 35, 0, 35)
 ToggleBtn.Position = UDim2.new(0, 10, 0, 10)
 ToggleBtn.BackgroundColor3 = Color3.new(1, 1, 1)
 ToggleBtn.Text = ""
 
--- Main Frame
+-- MAIN FRAME
 local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 450, 0, 300)
-MainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
+MainFrame.Size = UDim2.new(0, 450, 0, 320)
+MainFrame.Position = UDim2.new(0.5, -225, 0.5, -160)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 MainFrame.Visible = true
-MainFrame.Active = true
 MainFrame.Draggable = true
+MainFrame.Active = true
 
--- Tab Bar (Left Side)
+-- TAB SYSTEM
 local TabBar = Instance.new("Frame", MainFrame)
 TabBar.Size = UDim2.new(0, 100, 1, 0)
 TabBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 
--- Content Area
 local Content = Instance.new("Frame", MainFrame)
 Content.Size = UDim2.new(1, -110, 1, -10)
 Content.Position = UDim2.new(0, 105, 0, 5)
 Content.BackgroundTransparency = 1
 
--- Tab Handling Logic
 local tabs = {}
-local function showTab(name)
-    for k, v in pairs(tabs) do v.Visible = (k == name) end
-end
-
 local function createTab(name, order)
     local btn = Instance.new("TextButton", TabBar)
     btn.Size = UDim2.new(1, -10, 0, 40)
@@ -54,76 +46,118 @@ local function createTab(name, order)
     frame.Size = UDim2.new(1, 0, 1, 0)
     frame.BackgroundTransparency = 1
     frame.Visible = (order == 1)
-    frame.CanvasSize = UDim2.new(0, 0, 2, 0)
     tabs[name] = frame
     
-    btn.MouseButton1Click:Connect(function() showTab(name) end)
+    btn.MouseButton1Click:Connect(function()
+        for _, v in pairs(tabs) do v.Visible = false end
+        frame.Visible = true
+    end)
     return frame
 end
 
 ToggleBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
 
--- --- TABS --- --
 local mainTab = createTab("Main", 1)
-local brookTab = createTab("Brookhaven", 2)
-local bloxTab = createTab("BloxFruits", 3)
+local bloxTab = createTab("BloxFruits", 2)
 
--- HELPER: Create Button in Tab
-local function addBtn(txt, tab, pos, cb)
-    local b = Instance.new("TextButton", tab)
-    b.Size = UDim2.new(1, -10, 0, 35)
-    b.Position = pos
-    b.Text = txt
-    b.MouseButton1Click:Connect(cb)
-    return b
+-- HELPER: Create Input Box
+local function addInput(placeholder, tab, pos, cb)
+    local box = Instance.new("TextBox", tab)
+    box.Size = UDim2.new(1, -10, 0, 35)
+    box.Position = pos
+    box.PlaceholderText = placeholder
+    box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    box.TextColor3 = Color3.new(1, 1, 1)
+    box.FocusLost:Connect(function() cb(box.Text) end)
+    return box
 end
 
 -- [[ MAIN TAB FEATURES ]] --
-addBtn("Fix Server Hop", mainTab, UDim2.new(0,5,0,5), function()
-    local servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100")).data
-    for _, s in pairs(servers) do
-        if s.playing < s.maxPlayers and s.id ~= game.JobId then
-            TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id)
-        end
+
+-- 1. INF JUMP
+local InfJumpEnabled = false
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if InfJumpEnabled then
+        player.Character:FindFirstChildOfClass('Humanoid'):ChangeState("Jumping")
     end
 end)
 
--- INVISIBLE / NO HITBOX (Main Tab)
-addBtn("Ghost Mode (Invisible)", mainTab, UDim2.new(0,5,0,45), function()
-    local char = player.Character
-    for _, v in pairs(char:GetDescendants()) do
-        if v:IsA("BasePart") or v:IsA("Decal") then
-            v.Transparency = 1
-            if v.Name ~= "HumanoidRootPart" then v.CanCollide = false end
-        end
-    end
+local ijBtn = Instance.new("TextButton", mainTab)
+ijBtn.Size = UDim2.new(1, -10, 0, 35)
+ijBtn.Position = UDim2.new(0, 5, 0, 5)
+ijBtn.Text = "Inf Jump: OFF"
+ijBtn.MouseButton1Click:Connect(function()
+    InfJumpEnabled = not InfJumpEnabled
+    ijBtn.Text = "Inf Jump: " .. (InfJumpEnabled and "ON" or "OFF")
 end)
 
--- [[ BROOKHAVEN TAB ]] --
--- These use Brookhaven's specific RemoteEvents to try and replicate to others
-addBtn("Global Sky (Brookhaven)", brookTab, UDim2.new(0,5,0,5), function()
-    -- Attempting to fire Brookhaven's specific sky event if it exists
-    print("Brookhaven Sky Triggered")
+-- 2. STAT MULTIPLIERS (Text Boxes)
+addInput("Set Speed (e.g. 50)", mainTab, UDim2.new(0, 5, 0, 45), function(val)
+    player.Character.Humanoid.WalkSpeed = tonumber(val) or 16
+end)
+
+addInput("Set Jump (e.g. 100)", mainTab, UDim2.new(0, 5, 0, 85), function(val)
+    player.Character.Humanoid.JumpPower = tonumber(val) or 50
+end)
+
+addInput("Set Gravity (Default 196)", mainTab, UDim2.new(0, 5, 0, 125), function(val)
+    workspace.Gravity = tonumber(val) or 196.2
+end)
+
+-- 3. SKYBOX (Fixed for you)
+local skyBtn = Instance.new("TextButton", mainTab)
+skyBtn.Size = UDim2.new(1, -10, 0, 35)
+skyBtn.Position = UDim2.new(0, 5, 0, 165)
+skyBtn.Text = "Set CoolSky"
+skyBtn.MouseButton1Click:Connect(function()
+    local sky = Instance.new("Sky", Lighting)
+    sky.SkyboxBk = "rbxassetid://159454299"
+    sky.SkyboxDn = "rbxassetid://159454299"
+    sky.SkyboxFt = "rbxassetid://159454299"
+    sky.SkyboxLf = "rbxassetid://159454299"
+    sky.SkyboxRt = "rbxassetid://159454299"
+    sky.SkyboxUp = "rbxassetid://159454299"
 end)
 
 -- [[ BLOX FRUITS TAB ]] --
-addBtn("Auto Farm (Nearest)", bloxTab, UDim2.new(0,5,0,5), function()
-    -- Warning: Auto-farming requires complex loops to move your character to NPCs
-    _G.AutoFarm = true
-    while _G.AutoFarm do
-        task.wait(1)
-        print("Farming...")
-    end
+
+-- Redz/Gravity Style AutoFarm (Teleports to Nearest NPC)
+local AutoFarm = false
+local afBtn = Instance.new("TextButton", bloxTab)
+afBtn.Size = UDim2.new(1, -10, 0, 35)
+afBtn.Position = UDim2.new(0, 5, 0, 5)
+afBtn.Text = "Auto Farm: OFF"
+
+afBtn.MouseButton1Click:Connect(function()
+    AutoFarm = not AutoFarm
+    afBtn.Text = "Auto Farm: " .. (AutoFarm and "ON" or "OFF")
+    
+    spawn(function()
+        while AutoFarm do
+            task.wait()
+            pcall(function()
+                for _, v in pairs(game.Workspace.Enemies:GetChildren()) do
+                    if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                        player.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5)
+                        -- Put your attack code here if needed
+                    end
+                end
+            end)
+        end
+    end)
 end)
 
-addBtn("Auto Roll Fruit", bloxTab, UDim2.new(0,5,0,45), function()
-    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Cousin","Buy")
-end)
-
-addBtn("Auto Find Fruit", bloxTab, UDim2.new(0,5,0,85), function()
+-- Auto Fruit Finder (Inventory)
+local ffBtn = Instance.new("TextButton", bloxTab)
+ffBtn.Size = UDim2.new(1, -10, 0, 45)
+ffBtn.Position = UDim2.new(0, 5, 0, 45)
+ffBtn.Text = "Find & Store Fruits"
+ffBtn.MouseButton1Click:Connect(function()
     for _, v in pairs(game.Workspace:GetChildren()) do
-        if v:IsA("Tool") and v:FindFirstChild("Handle") then
+        if v:IsA("Tool") and (v.Name:find("Fruit") or v:FindFirstChild("Handle")) then
             player.Character.HumanoidRootPart.CFrame = v.Handle.CFrame
+            task.wait(0.5)
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", v.Name, v)
         end
     end
 end)
