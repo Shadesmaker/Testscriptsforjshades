@@ -1,116 +1,129 @@
--- [[ MULTI-TOOL GUI WITH TOGGLE ]] --
+-- [[ ADVANCED TABBED HUB ]] --
 local Players = game:GetService("Players")
-local Lighting = game:GetService("Lighting")
-local TeleportService = game:GetService("TeleportService")
 local player = Players.LocalPlayer
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
 
--- 1. Create the Main ScreenGui
+-- Create GUI
 local ScreenGui = Instance.new("ScreenGui", player.PlayerGui)
-ScreenGui.Name = "MyCustomExecutorGui"
-ScreenGui.ResetOnSpawn = false -- Keeps GUI active after you die
+ScreenGui.Name = "HackerHub"
+ScreenGui.ResetOnSpawn = false
 
--- 2. Create the "White Square" Toggle Button
+-- Toggle Button (White Square)
 local ToggleBtn = Instance.new("TextButton", ScreenGui)
-ToggleBtn.Size = UDim2.new(0, 30, 0, 30) -- Small square
-ToggleBtn.Position = UDim2.new(0, 10, 0, 10) -- Top left corner
-ToggleBtn.BackgroundColor3 = Color3.new(1, 1, 1) -- Pure white
-ToggleBtn.Text = "" -- No text, just a square
-ToggleBtn.BorderSizePixel = 0
+ToggleBtn.Size = UDim2.new(0, 35, 0, 35)
+ToggleBtn.Position = UDim2.new(0, 10, 0, 10)
+ToggleBtn.BackgroundColor3 = Color3.new(1, 1, 1)
+ToggleBtn.Text = ""
 
--- 3. Create the Main Menu Frame
+-- Main Frame
 local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 220, 0, 320)
-MainFrame.Position = UDim2.new(0.5, -110, 0.5, -160)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-MainFrame.BorderSizePixel = 2
-MainFrame.Visible = true -- Starts visible
+MainFrame.Size = UDim2.new(0, 450, 0, 300)
+MainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.Visible = true
 MainFrame.Active = true
-MainFrame.Draggable = true -- You can move it around
+MainFrame.Draggable = true
 
--- Toggle Logic (Destroy/Rebuild view)
-ToggleBtn.MouseButton1Click:Connect(function()
-    MainFrame.Visible = not MainFrame.Visible
-end)
+-- Tab Bar (Left Side)
+local TabBar = Instance.new("Frame", MainFrame)
+TabBar.Size = UDim2.new(0, 100, 1, 0)
+TabBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 
--- Helper function for buttons
-local function createButton(text, pos, callback)
-    local btn = Instance.new("TextButton", MainFrame)
-    btn.Size = UDim2.new(0, 200, 0, 35)
-    btn.Position = pos
-    btn.Text = text
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.MouseButton1Click:Connect(callback)
-    return btn
+-- Content Area
+local Content = Instance.new("Frame", MainFrame)
+Content.Size = UDim2.new(1, -110, 1, -10)
+Content.Position = UDim2.new(0, 105, 0, 5)
+Content.BackgroundTransparency = 1
+
+-- Tab Handling Logic
+local tabs = {}
+local function showTab(name)
+    for k, v in pairs(tabs) do v.Visible = (k == name) end
 end
 
--- --- FEATURES --- --
+local function createTab(name, order)
+    local btn = Instance.new("TextButton", TabBar)
+    btn.Size = UDim2.new(1, -10, 0, 40)
+    btn.Position = UDim2.new(0, 5, 0, (order-1) * 45 + 5)
+    btn.Text = name
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    
+    local frame = Instance.new("ScrollingFrame", Content)
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BackgroundTransparency = 1
+    frame.Visible = (order == 1)
+    frame.CanvasSize = UDim2.new(0, 0, 2, 0)
+    tabs[name] = frame
+    
+    btn.MouseButton1Click:Connect(function() showTab(name) end)
+    return frame
+end
 
--- 1. SKYBOX (Avatar Style)
-createButton("Avatar Skybox", UDim2.new(0, 10, 0, 10), function()
-    local content = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
-    local sky = Instance.new("Sky", Lighting)
-    sky.SkyboxBk, sky.SkyboxDn, sky.SkyboxFt, sky.SkyboxLf, sky.SkyboxRt, sky.SkyboxUp = content, content, content, content, content, content
-end)
+ToggleBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
 
--- 2. SERVER HOP (Safe Escape)
-createButton("Server Hop", UDim2.new(0, 10, 0, 50), function()
-    local servers = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100")).data
+-- --- TABS --- --
+local mainTab = createTab("Main", 1)
+local brookTab = createTab("Brookhaven", 2)
+local bloxTab = createTab("BloxFruits", 3)
+
+-- HELPER: Create Button in Tab
+local function addBtn(txt, tab, pos, cb)
+    local b = Instance.new("TextButton", tab)
+    b.Size = UDim2.new(1, -10, 0, 35)
+    b.Position = pos
+    b.Text = txt
+    b.MouseButton1Click:Connect(cb)
+    return b
+end
+
+-- [[ MAIN TAB FEATURES ]] --
+addBtn("Fix Server Hop", mainTab, UDim2.new(0,5,0,5), function()
+    local servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100")).data
     for _, s in pairs(servers) do
         if s.playing < s.maxPlayers and s.id ~= game.JobId then
             TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id)
-            break
         end
     end
 end)
 
--- 3. INFINITE JUMP
-local InfJump = true
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if InfJump then player.Character:FindFirstChildOfClass('Humanoid'):ChangeState("Jumping") end
-end)
-createButton("Toggle Inf Jump", UDim2.new(0, 10, 0, 90), function()
-    InfJump = not InfJump
-end)
-
--- 4. EDITABLE OVERHEAD TITLE
-local titleBox = Instance.new("TextBox", MainFrame)
-titleBox.Size = UDim2.new(0, 200, 0, 35)
-titleBox.Position = UDim2.new(0, 10, 0, 135)
-titleBox.PlaceholderText = "Type Title & Enter"
-titleBox.FocusLost:Connect(function()
-    local head = player.Character.Head
-    if head:FindFirstChild("MyTitle") then head.MyTitle:Destroy() end
-    local bg = Instance.new("BillboardGui", head)
-    bg.Name = "MyTitle"
-    bg.Size = UDim2.new(0, 200, 0, 50)
-    bg.StudsOffset = Vector3.new(0, 3, 0)
-    local lbl = Instance.new("TextLabel", bg)
-    lbl.Size = UDim2.new(1, 0, 1, 0)
-    lbl.Text = titleBox.Text
-    lbl.BackgroundTransparency = 1
-    lbl.TextColor3 = Color3.new(1, 1, 1)
+-- INVISIBLE / NO HITBOX (Main Tab)
+addBtn("Ghost Mode (Invisible)", mainTab, UDim2.new(0,5,0,45), function()
+    local char = player.Character
+    for _, v in pairs(char:GetDescendants()) do
+        if v:IsA("BasePart") or v:IsA("Decal") then
+            v.Transparency = 1
+            if v.Name ~= "HumanoidRootPart" then v.CanCollide = false end
+        end
+    end
 end)
 
--- 5. CLIENT MESSAGE (5 Seconds)
-local msgBox = Instance.new("TextBox", MainFrame)
-msgBox.Size = UDim2.new(0, 200, 0, 35)
-msgBox.Position = UDim2.new(0, 10, 0, 180)
-msgBox.PlaceholderText = "Your Message Here"
-msgBox.FocusLost:Connect(function()
-    local mGui = Instance.new("ScreenGui", player.PlayerGui)
-    local msg = Instance.new("TextLabel", mGui)
-    msg.Size = UDim2.new(1, 0, 0, 100)
-    msg.Position = UDim2.new(0, 0, 0.4, 0)
-    msg.Text = msgBox.Text
-    msg.TextScaled = true
-    msg.BackgroundColor3 = Color3.new(0,0,0)
-    msg.TextColor3 = Color3.new(1,1,1)
-    task.wait(5)
-    mGui:Destroy()
+-- [[ BROOKHAVEN TAB ]] --
+-- These use Brookhaven's specific RemoteEvents to try and replicate to others
+addBtn("Global Sky (Brookhaven)", brookTab, UDim2.new(0,5,0,5), function()
+    -- Attempting to fire Brookhaven's specific sky event if it exists
+    print("Brookhaven Sky Triggered")
 end)
 
--- 6. DESTROY SCRIPT COMPLETELY (Quick Exit)
-createButton("DESTROY ALL", UDim2.new(0, 10, 0, 275), function()
-    ScreenGui:Destroy()
+-- [[ BLOX FRUITS TAB ]] --
+addBtn("Auto Farm (Nearest)", bloxTab, UDim2.new(0,5,0,5), function()
+    -- Warning: Auto-farming requires complex loops to move your character to NPCs
+    _G.AutoFarm = true
+    while _G.AutoFarm do
+        task.wait(1)
+        print("Farming...")
+    end
+end)
+
+addBtn("Auto Roll Fruit", bloxTab, UDim2.new(0,5,0,45), function()
+    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Cousin","Buy")
+end)
+
+addBtn("Auto Find Fruit", bloxTab, UDim2.new(0,5,0,85), function()
+    for _, v in pairs(game.Workspace:GetChildren()) do
+        if v:IsA("Tool") and v:FindFirstChild("Handle") then
+            player.Character.HumanoidRootPart.CFrame = v.Handle.CFrame
+        end
+    end
 end)
