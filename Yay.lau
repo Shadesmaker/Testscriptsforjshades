@@ -11,10 +11,20 @@ local function createGUI()
     ScreenGui.Name = "HackerHub_V3"
     ScreenGui.ResetOnSpawn = false
 
+    -- Title Label
+    local titleLabel = Instance.new("TextLabel", ScreenGui)
+    titleLabel.Size = UDim2.new(1, 0, 0, 30)
+    titleLabel.Position = UDim2.new(0, 0, 0, 0)
+    titleLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    titleLabel.TextColor3 = Color3.new(1, 1, 1)
+    titleLabel.Text = "Jshades Holy Scripts"
+    titleLabel.TextScaled = true
+    titleLabel.Font = Enum.Font.SourceSansBold
+
     -- Toggle Button
     local toggleBtn = Instance.new("TextButton", ScreenGui)
     toggleBtn.Size = UDim2.new(0, 35, 0, 35)
-    toggleBtn.Position = UDim2.new(0, 10, 0, 10)
+    toggleBtn.Position = UDim2.new(0, 10, 0, 40)
     toggleBtn.BackgroundColor3 = Color3.new(1, 1, 1)
     toggleBtn.Text = ""
     toggleBtn.Name = "MainToggle"
@@ -78,9 +88,33 @@ local function createGUI()
     -- Invisibility Button
     local invisBtn = Instance.new("TextButton", mainTab)
     invisBtn.Size = UDim2.new(1, -10, 0, 35)
-    invisBtn.Position = UDim2.new(0, 5, 0, 200)
+    invisBtn.Position = UDim2.new(0, 5, 0, 250)
     invisBtn.Text = "Toggle Invisibility"
     invisBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+
+    -- Speed Input
+    local speedInput = Instance.new("TextBox", mainTab)
+    speedInput.Size = UDim2.new(1, -10, 0, 35)
+    speedInput.Position = UDim2.new(0, 5, 0, 45)
+    speedInput.PlaceholderText = "Set Speed (e.g. 50)"
+    speedInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    speedInput.TextColor3 = Color3.new(1, 1, 1)
+
+    -- Jump Power Input
+    local jumpInput = Instance.new("TextBox", mainTab)
+    jumpInput.Size = UDim2.new(1, -10, 0, 35)
+    jumpInput.Position = UDim2.new(0, 5, 0, 85)
+    jumpInput.PlaceholderText = "Set Jump (e.g. 100)"
+    jumpInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    jumpInput.TextColor3 = Color3.new(1, 1, 1)
+
+    -- Gravity Input
+    local gravityInput = Instance.new("TextBox", mainTab)
+    gravityInput.Size = UDim2.new(1, -10, 0, 35)
+    gravityInput.Position = UDim2.new(0, 5, 0, 125)
+    gravityInput.PlaceholderText = "Set Gravity (Default 196)"
+    gravityInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    gravityInput.TextColor3 = Color3.new(1, 1, 1)
 
     return {
         toggleBtn = toggleBtn,
@@ -88,18 +122,9 @@ local function createGUI()
         mainTab = mainTab,
         bloxTab = bloxTab,
         invisBtn = invisBtn,
-        createInput = function(placeholder, parent, pos, cb)
-            local box = Instance.new("TextBox", parent)
-            box.Size = UDim2.new(1, -10, 0, 35)
-            box.Position = pos
-            box.PlaceholderText = placeholder
-            box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            box.TextColor3 = Color3.new(1, 1, 1)
-            box.FocusLost:Connect(function()
-                cb(box.Text)
-            end)
-            return box
-        end
+        speedInput = speedInput,
+        jumpInput = jumpInput,
+        gravityInput = gravityInput,
     }
 end
 
@@ -107,27 +132,21 @@ local GUI = createGUI()
 
 -- ================== FEATURE IMPLEMENTATIONS ==================
 
--- 1. INF JUMP (Toggle)
+-- 1. INF JUMP
 local infJumpEnabled = false
-local function setupInfJump()
-    GUI.invisBtn.MouseButton1Click:Connect(function()
-        infJumpEnabled = not infJumpEnabled
-        if infJumpEnabled then
-            GUI.invisBtn.Text = "Inf Jump: ON"
-        else
-            GUI.invisBtn.Text = "Inf Jump: OFF"
-        end
-    end)
+GUI.invisBtn.MouseButton1Click:Connect(function()
+    infJumpEnabled = not infJumpEnabled
+    GUI.invisBtn.Text = "Toggle Invisibility: " .. (infJumpEnabled and "ON" or "OFF")
+end)
 
-    UserInputService.JumpRequest:Connect(function()
-        if infJumpEnabled then
-            local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-            if humanoid then
-                humanoid:ChangeState("Jumping")
-            end
+UserInputService.JumpRequest:Connect(function()
+    if infJumpEnabled then
+        local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState("Jumping")
         end
-    end)
-end
+    end
+end)
 
 -- 2. AUTO FARM (Cautious)
 local autoFarm = false
@@ -148,22 +167,20 @@ local function setupAutoFarm()
                         if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
                             local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
                             if hrp then
-                                -- Move to enemy gently
                                 local targetCFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5)
                                 hrp.CFrame = targetCFrame
-                                -- Small delay to avoid detection
                                 task.wait(1)
                             end
                         end
                     end
-                    task.wait(2) -- slight delay between scans
+                    task.wait(2)
                 end
             end)
         end
     end)
 end
 
--- 3. FIND AND STORE FRUITS (Less aggressive)
+-- 3. FIND & STORE FRUITS
 local function setupFruitFinder()
     local btn = Instance.new("TextButton", GUI.bloxTab)
     btn.Size = UDim2.new(1, -10, 0, 45)
@@ -178,61 +195,67 @@ local function setupFruitFinder()
                 if hrp then
                     hrp.CFrame = v.Handle.CFrame
                     task.wait(0.5)
-                    -- Assume remote call to store fruit
                     local success, err = pcall(function()
                         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", v.Name, v)
                     end)
-                    if not success then
-                        warn("Failed to store fruit: ", err)
-                    end
+                    if not success then warn("Failed to store fruit: ", err) end
                 end
             end
         end
     end)
 end
 
--- 4. INVISIBILITY TO OTHERS
+-- 4. TOGGLE INVISIBILITY (local only, makes you invisible to others)
 local invisibility = false
 local function toggleInvisibility()
     local char = player.Character
     if not char then return end
     invisibility = not invisibility
-    if invisibility then
-        -- Make transparent and disable parts for others
-        for _, part in pairs(char:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.Transparency = 1
-                -- Optional: disable collision
-                part.CanCollide = false
-            end
+    for _, part in pairs(char:GetChildren()) do
+        if part:IsA("BasePart") then
+            part.Transparency = invisibility and 1 or 0
+            part.CanCollide = not invisibility
         end
-        -- Hide character from others (local)
-        for _, otherPlayer in pairs(Players:GetPlayers()) do
-            if otherPlayer ~= player then
-                local otherChar = otherPlayer.Character
-                if otherChar then
-                    for _, p in pairs(otherChar:GetChildren()) do
-                        if p:IsA("BasePart") then
-                            p.Transparency = 0.5 -- Make theirs semi-visible or keep original
-                        end
-                    end
-                end
-            end
-        end
-    else
-        -- Reset transparency
-        for _, part in pairs(char:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.Transparency = 0
-                part.CanCollide = true
-            end
-        end
-        -- Reset others' visibility if needed
-        -- (Note: More complex invisibility might need custom network filtering)
     end
 end
-
 GUI.invisBtn.MouseButton1Click:Connect(toggleInvisibility)
+
+-- 5. Handle Speed, Jump, Gravity Inputs
+local function setupInputs()
+    local function validateNumber(str)
+        local num = tonumber(str)
+        if num then return num else return nil end
+    end
+
+    GUI.speedInput.FocusLost:Connect(function()
+        local val = validateNumber(GUI.speedInput.Text)
+        if val then
+            local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = val
+            end
+        end
+    end)
+
+    GUI.jumpInput.FocusLost:Connect(function()
+        local val = validateNumber(GUI.jumpInput.Text)
+        if val then
+            local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.JumpPower = val
+            end
+        end
+    end)
+
+    GUI.gravityInput.FocusLost:Connect(function()
+        local val = validateNumber(GUI.gravityInput.Text)
+        if val then
+            workspace.Gravity = val
+        end
+    end)
+end
+
+setupInputs()
 
 -- Initialize all features
 setupInfJump()
