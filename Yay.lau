@@ -21,7 +21,7 @@ local function createGUI()
     titleLabel.TextScaled = true
     titleLabel.Font = Enum.Font.SourceSansBold
 
-    -- Toggle Button
+    -- Toggle Button for main UI (hide/show)
     local toggleBtn = Instance.new("TextButton", ScreenGui)
     toggleBtn.Size = UDim2.new(0, 35, 0, 35)
     toggleBtn.Position = UDim2.new(0, 10, 0, 40)
@@ -86,17 +86,17 @@ local function createGUI()
         mainFrame.Visible = not mainFrame.Visible
     end)
 
-    -- Invisibility Button
-    local invisBtn = Instance.new("TextButton", mainTab)
-    invisBtn.Size = UDim2.new(1, -10, 0, 35)
-    invisBtn.Position = UDim2.new(0, 5, 0, 250)
-    invisBtn.Text = "Toggle Invisibility"
-    invisBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    -- Brookhaven Invisibility Button (acts as toggle)
+    local brookInvisBtn = Instance.new("TextButton", brookTab)
+    brookInvisBtn.Size = UDim2.new(1, -10, 0, 35)
+    brookInvisBtn.Position = UDim2.new(0, 5, 0, 45)
+    brookInvisBtn.Text = "Brookhaven Invis: OFF"
+    brookInvisBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 
     -- Skybox Button for Brookhaven
     local skyBtn = Instance.new("TextButton", brookTab)
     skyBtn.Size = UDim2.new(1, -10, 0, 35)
-    skyBtn.Position = UDim2.new(0, 5, 0, 5)
+    skyBtn.Position = UDim2.new(0, 5, 0, 85)
     skyBtn.Text = "Set BrookSky"
     skyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 
@@ -130,7 +130,7 @@ local function createGUI()
         mainTab = mainTab,
         bloxTab = bloxTab,
         brookTab = brookTab,
-        invisBtn = invisBtn,
+        brookInvisBtn = brookInvisBtn,
         skyBtn = skyBtn,
         speedInput = speedInput,
         jumpInput = jumpInput,
@@ -215,20 +215,29 @@ local function setupFruitFinder()
     end)
 end
 
--- 4. TOGGLE INVISIBILITY (local only, makes you invisible to others)
-local invisibility = false
-local function toggleInvisibility()
-    local char = player.Character
-    if not char then return end
-    invisibility = not invisibility
-    for _, part in pairs(char:GetChildren()) do
+-- 4. BROOKHAVEN INVISIBILITY TO OTHERS
+local brookInvisActive = false
+local function toggleBrookhavenInvisibility()
+    local character = player.Character
+    if not character then return end
+    brookInvisActive = not brookInvisActive
+    for _, part in pairs(character:GetChildren()) do
         if part:IsA("BasePart") then
-            part.Transparency = invisibility and 1 or 0
-            part.CanCollide = not invisibility
+            if brookInvisActive then
+                -- Make your parts invisible to others
+                part.Transparency = 1
+                part.CanCollide = false
+            else
+                -- Reset visibility
+                part.Transparency = 0
+                part.CanCollide = true
+            end
         end
     end
+    -- Update button text
+    GUI.brookInvisBtn.Text = "Brook Invisi: " .. (brookInvisActive and "ON" or "OFF")
 end
-GUI.invisBtn.MouseButton1Click:Connect(toggleInvisibility)
+GUI.brookInvisBtn.MouseButton1Click:Connect(toggleBrookhavenInvisibility)
 
 -- 5. Skybox for Brookhaven tab
 local function setBrookSky()
