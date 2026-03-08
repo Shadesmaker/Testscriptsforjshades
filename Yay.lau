@@ -79,6 +79,7 @@ local function createGUI()
     -- Create Tabs
     local mainTab = createTab("Main", 1)
     local bloxTab = createTab("BloxFruits", 2)
+    local brookTab = createTab("Brookhaven", 3)
 
     -- Toggle Main Frame visibility
     toggleBtn.MouseButton1Click:Connect(function()
@@ -91,6 +92,13 @@ local function createGUI()
     invisBtn.Position = UDim2.new(0, 5, 0, 250)
     invisBtn.Text = "Toggle Invisibility"
     invisBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+
+    -- Skybox Button for Brookhaven
+    local skyBtn = Instance.new("TextButton", brookTab)
+    skyBtn.Size = UDim2.new(1, -10, 0, 35)
+    skyBtn.Position = UDim2.new(0, 5, 0, 5)
+    skyBtn.Text = "Set BrookSky"
+    skyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 
     -- Speed Input
     local speedInput = Instance.new("TextBox", mainTab)
@@ -121,7 +129,9 @@ local function createGUI()
         mainFrame = mainFrame,
         mainTab = mainTab,
         bloxTab = bloxTab,
+        brookTab = brookTab,
         invisBtn = invisBtn,
+        skyBtn = skyBtn,
         speedInput = speedInput,
         jumpInput = jumpInput,
         gravityInput = gravityInput,
@@ -220,7 +230,19 @@ local function toggleInvisibility()
 end
 GUI.invisBtn.MouseButton1Click:Connect(toggleInvisibility)
 
--- 5. Handle Speed, Jump, Gravity Inputs
+-- 5. Skybox for Brookhaven tab
+local function setBrookSky()
+    local sky = Instance.new("Sky", Lighting)
+    sky.SkyboxBk = "rbxassetid://159454299"
+    sky.SkyboxDn = "rbxassetid://159454299"
+    sky.SkyboxFt = "rbxassetid://159454299"
+    sky.SkyboxLf = "rbxassetid://159454299"
+    sky.SkyboxRt = "rbxassetid://159454299"
+    sky.SkyboxUp = "rbxassetid://159454299"
+end
+GUI.skyBtn.MouseButton1Click:Connect(setBrookSky)
+
+-- 6. Handle Speed, Jump, Gravity Inputs with validation
 local function setupInputs()
     local function validateNumber(str)
         local num = tonumber(str)
@@ -257,7 +279,21 @@ end
 
 setupInputs()
 
--- Initialize all features
-setupInfJump()
+-- Initialize features
+local infJumpEnabled = false
+GUI.invisBtn.MouseButton1Click:Connect(function()
+    infJumpEnabled = not infJumpEnabled
+    GUI.invisBtn.Text = "Toggle Invisibility: " .. (infJumpEnabled and "ON" or "OFF")
+end)
+
+UserInputService.JumpRequest:Connect(function()
+    if infJumpEnabled then
+        local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState("Jumping")
+        end
+    end
+end)
+
 setupAutoFarm()
 setupFruitFinder()
