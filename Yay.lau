@@ -4,191 +4,176 @@ local Lighting = game:GetService("Lighting")
 
 local player = Players.LocalPlayer
 
--- GUI setup with title and tabs
-local function createGUI()
+-- Function to create UI
+local function createUI()
     local ScreenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-    ScreenGui.Name = "HackerHub_V3"
-    ScreenGui.ResetOnSpawn = false
+    ScreenGui.Name = "CleanScriptUI"
 
     -- Title
-    local titleLabel = Instance.new("TextLabel", ScreenGui)
-    titleLabel.Size = UDim2.new(1, 0, 0, 30)
-    titleLabel.Position = UDim2.new(0, 0, 0, 0)
-    titleLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    titleLabel.TextColor3 = Color3.new(1, 1, 1)
-    titleLabel.Text = "Jshades Holy Scripts"
-    titleLabel.TextScaled = true
-    titleLabel.Font = Enum.Font.SourceSansBold
+    local title = Instance.new("TextLabel", ScreenGui)
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.BackgroundColor3 = Color3.fromRGB(20,20,20)
+    title.TextColor3 = Color3.new(1,1,1)
+    title.Text = "Jshades Holy Scripts"
+    title.TextScaled = true
+    title.Font = Enum.Font.SourceSansBold
 
     -- Main toggle button
     local toggleBtn = Instance.new("TextButton", ScreenGui)
     toggleBtn.Size = UDim2.new(0, 35, 0, 35)
     toggleBtn.Position = UDim2.new(0, 10, 0, 40)
-    toggleBtn.BackgroundColor3 = Color3.new(1, 1, 1)
+    toggleBtn.BackgroundColor3 = Color3.new(1,1,1)
     toggleBtn.Text = ""
-    toggleBtn.Name = "MainToggle"
 
     -- Main Frame
     local mainFrame = Instance.new("Frame", ScreenGui)
     mainFrame.Size = UDim2.new(0, 450, 0, 320)
     mainFrame.Position = UDim2.new(0.5, -225, 0.5, -160)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    mainFrame.Visible = true
+    mainFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
     mainFrame.Draggable = true
     mainFrame.Active = true
-    mainFrame.Name = "MainFrame"
 
-    -- Tabs bar
+    -- Tabs
     local tabBar = Instance.new("Frame", mainFrame)
     tabBar.Size = UDim2.new(0, 100, 1, 0)
-    tabBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    tabBar.BackgroundColor3 = Color3.fromRGB(30,30,30)
 
-    -- Content area
-    local content = Instance.new("Frame", mainFrame)
-    content.Size = UDim2.new(1, -110, 1, -10)
-    content.Position = UDim2.new(0, 105, 0, 5)
-    content.BackgroundTransparency = 1
-    content.Name = "Content"
+    local contentFrame = Instance.new("Frame", mainFrame)
+    contentFrame.Size = UDim2.new(1, -110, 1, -10)
+    contentFrame.Position = UDim2.new(0, 105, 0, 5)
+    contentFrame.BackgroundTransparency = 1
 
     local tabs = {}
-
     local function createTab(name, index)
         local btn = Instance.new("TextButton", tabBar)
         btn.Size = UDim2.new(1, -10, 0, 40)
         btn.Position = UDim2.new(0, 5, 0, (index - 1) * 45 + 5)
         btn.Text = name
-        btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+        btn.TextColor3 = Color3.new(1,1,1)
 
-        local frame = Instance.new("ScrollingFrame", content)
+        local frame = Instance.new("Frame", contentFrame)
         frame.Size = UDim2.new(1, 0, 1, 0)
-        frame.BackgroundTransparency = 1
         frame.Visible = (index == 1)
+        frame.BackgroundTransparency = 1
         frame.Name = name .. "Frame"
 
-        tabs[name] = frame
+        table.insert(tabs, {name = name, button = btn, frame = frame})
 
         btn.MouseButton1Click:Connect(function()
-            for _, v in pairs(tabs) do v.Visible = false end
+            for _, t in ipairs(tabs) do t.frame.Visible = false end
             frame.Visible = true
         end)
 
         return frame
     end
 
-    -- Tabs creation
+    -- Create tabs
     local mainTab = createTab("Main", 1)
     local bloxTab = createTab("BloxFruits", 2)
     local brookTab = createTab("Brookhaven", 3)
 
-    -- Main frame toggle
+    -- Button to hide/show main UI
     toggleBtn.MouseButton1Click:Connect(function()
         mainFrame.Visible = not mainFrame.Visible
     end)
 
-    -- BloxFruits tab options
-    -- Auto farm toggle
+    -- =================== FEATURES UI ===================
+
+    -- BloxFruits tab features
     local autoFarmBtn = Instance.new("TextButton", bloxTab)
     autoFarmBtn.Size = UDim2.new(1, -10, 0, 35)
     autoFarmBtn.Position = UDim2.new(0, 5, 0, 5)
     autoFarmBtn.Text = "Auto Farm: OFF"
-    autoFarmBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    autoFarmBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
 
-    -- Find & Store Fruits
     local findFruitsBtn = Instance.new("TextButton", bloxTab)
     findFruitsBtn.Size = UDim2.new(1, -10, 0, 45)
     findFruitsBtn.Position = UDim2.new(0, 5, 0, 45)
     findFruitsBtn.Text = "Find & Store Fruits"
-    findFruitsBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    findFruitsBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
 
-    -- Speed Input
     local speedInput = Instance.new("TextBox", mainTab)
     speedInput.Size = UDim2.new(1, -10, 0, 35)
     speedInput.Position = UDim2.new(0, 5, 0, 85)
     speedInput.PlaceholderText = "Set Speed (e.g. 50)"
-    speedInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    speedInput.TextColor3 = Color3.new(1, 1, 1)
+    speedInput.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    speedInput.TextColor3 = Color3.new(1,1,1)
 
-    -- Jump Power Input
     local jumpInput = Instance.new("TextBox", mainTab)
     jumpInput.Size = UDim2.new(1, -10, 0, 35)
     jumpInput.Position = UDim2.new(0, 5, 0, 125)
     jumpInput.PlaceholderText = "Set Jump (e.g. 100)"
-    jumpInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    jumpInput.TextColor3 = Color3.new(1, 1, 1)
+    jumpInput.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    jumpInput.TextColor3 = Color3.new(1,1,1)
 
-    -- Gravity Input
     local gravityInput = Instance.new("TextBox", mainTab)
     gravityInput.Size = UDim2.new(1, -10, 0, 35)
     gravityInput.Position = UDim2.new(0, 5, 0, 165)
     gravityInput.PlaceholderText = "Set Gravity (Default 196)"
-    gravityInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    gravityInput.TextColor3 = Color3.new(1, 1, 1)
+    gravityInput.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    gravityInput.TextColor3 = Color3.new(1,1,1)
 
-    -- Brookhaven Invisibility toggle button
+    -- Brookhaven tab features
     local brookInvisBtn = Instance.new("TextButton", brookTab)
     brookInvisBtn.Size = UDim2.new(1, -10, 0, 35)
     brookInvisBtn.Position = UDim2.new(0, 5, 0, 45)
     brookInvisBtn.Text = "Brook Invisi: OFF"
-    brookInvisBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    brookInvisBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
 
-    -- Skybox button for Brookhaven
     local skyBtn = Instance.new("TextButton", brookTab)
     skyBtn.Size = UDim2.new(1, -10, 0, 35)
     skyBtn.Position = UDim2.new(0, 5, 0, 85)
     skyBtn.Text = "Set BrookSky"
-    skyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    skyBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
 
     return {
-        toggleBtn = toggleBtn,
-        mainFrame = mainFrame,
         mainTab = mainTab,
         bloxTab = bloxTab,
         brookTab = brookTab,
-        brookInvisBtn = brookInvisBtn,
-        skyBtn = skyBtn,
         autoFarmBtn = autoFarmBtn,
         findFruitsBtn = findFruitsBtn,
         speedInput = speedInput,
         jumpInput = jumpInput,
         gravityInput = gravityInput,
+        brookInvisBtn = brookInvisBtn,
+        skyBtn = skyBtn,
     }
 end
 
-local GUI = createGUI()
+local UI = createUI()
 
--- ================== FEATURE IMPLEMENTATIONS ==================
+-- =================== FEATURE IMPLEMENTATION ===================
 
--- 1. Infinite Jump
-local infJumpEnabled = false
-GUI.invisBtn.MouseButton1Click:Connect(function()
-    infJumpEnabled = not infJumpEnabled
-    GUI.invisBtn.Text = "Toggle Invisibility: " .. (infJumpEnabled and "ON" or "OFF")
+-- Infinite Jump toggle
+local infJump = false
+UI.invisBtn.MouseButton1Click:Connect(function()
+    infJump = not infJump
+    UI.invisBtn.Text = "Toggle Invisi: " .. (infJump and "ON" or "OFF")
 end)
 
 UserInputService.JumpRequest:Connect(function()
-    if infJumpEnabled then
-        local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid:ChangeState("Jumping")
-        end
+    if infJump then
+        local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum:ChangeState("Jumping") end
     end
 end)
 
--- 2. Auto Farm
-local autoFarm = false
-GUI.autoFarmBtn.MouseButton1Click:Connect(function()
-    autoFarm = not autoFarm
-    GUI.autoFarmBtn.Text = "Auto Farm: " .. (autoFarm and "ON" or "OFF")
-    if autoFarm then
+-- Auto Farm
+local autoFarmActive = false
+UI.autoFarmBtn.MouseButton1Click:Connect(function()
+    autoFarmActive = not autoFarmActive
+    UI.autoFarmBtn.Text = "Auto Farm: " .. (autoFarmActive and "ON" or "OFF")
+    if autoFarmActive then
         spawn(function()
-            while autoFarm do
+            while autoFarmActive do
                 for _, enemy in pairs(workspace.Enemies:GetChildren()) do
                     if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
                         local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
                         if hrp then
-                            local targetCFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5)
-                            hrp.CFrame = targetCFrame
+                            local targetPos = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5)
+                            hrp.CFrame = targetPos
+                            print("Moving to enemy:", enemy.Name)
                             task.wait(1)
                         end
                     end
@@ -199,44 +184,41 @@ GUI.autoFarmBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 3. Find & Store Fruits
-GUI.findFruitsBtn.MouseButton1Click:Connect(function()
+-- Find & Store Fruits
+UI.findFruitsBtn.MouseButton1Click:Connect(function()
+    print("Finding fruits...")
     for _, v in pairs(workspace:GetChildren()) do
         if v:IsA("Tool") and (v.Name:find("Fruit") or v:FindFirstChild("Handle")) then
             local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
             if hrp then
                 hrp.CFrame = v.Handle.CFrame
+                print("Moving to fruit:", v.Name)
                 task.wait(0.5)
                 local success, err = pcall(function()
                     game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", v.Name, v)
                 end)
-                if not success then warn("Failed to store fruit: ", err) end
+                if not success then warn("Failed to store fruit:", err) end
             end
         end
     end
 end)
 
--- 4. Brookhaven Invisibility to others
-local brookInvisActive = false
-GUI.brookInvisBtn.MouseButton1Click:Connect(function()
-    brookInvisActive = not brookInvisActive
-    local character = player.Character
-    if not character then return end
-    for _, part in pairs(character:GetChildren()) do
-        if part:IsA("BasePart") then
-            if brookInvisActive then
-                part.Transparency = 1
-                part.CanCollide = false
-            else
-                part.Transparency = 0
-                part.CanCollide = true
-            end
+-- Brook Invisibility toggle
+local brookInvis = false
+UI.brookInvisBtn.MouseButton1Click:Connect(function()
+    brookInvis = not brookInvis
+    local char = player.Character
+    if not char then return end
+    for _, p in pairs(char:GetChildren()) do
+        if p:IsA("BasePart") then
+            p.Transparency = brookInvis and 1 or 0
+            p.CanCollide = not brookInvis
         end
     end
-    GUI.brookInvisBtn.Text = "Brook Invisi: " .. (brookInvisActive and "ON" or "OFF")
+    UI.brookInvisBtn.Text = "Brook Invisi: " .. (brookInvis and "ON" or "OFF")
 end)
 
--- 5. Skybox for Brookhaven
+-- Skybox setup
 local function setBrookSky()
     local sky = Instance.new("Sky", Lighting)
     sky.SkyboxBk = "rbxassetid://159454299"
@@ -245,42 +227,57 @@ local function setBrookSky()
     sky.SkyboxLf = "rbxassetid://159454299"
     sky.SkyboxRt = "rbxassetid://159454299"
     sky.SkyboxUp = "rbxassetid://159454299"
+    print("Skybox set!")
 end
-GUI.skyBtn.MouseButton1Click:Connect(setBrookSky)
+UI.skyBtn.MouseButton1Click:Connect(setBrookSky)
 
--- 6. Handle Speed, Jump, Gravity inputs with validation
-local function setupInputs()
+-- Speed, Jump, Gravity controls
+local function setupControls()
     local function validateNumber(str)
         local num = tonumber(str)
         if num then return num else return nil end
     end
 
-    GUI.speedInput.FocusLost:Connect(function()
-        local val = validateNumber(GUI.speedInput.Text)
+    -- Speed
+    UI.speedInput.FocusLost:Connect(function()
+        local val = validateNumber(UI.speedInput.Text)
         if val then
-            local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-            if humanoid then
-                humanoid.WalkSpeed = val
+            local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum.WalkSpeed = val
+                print("Speed set to", val)
             end
         end
     end)
 
-    GUI.jumpInput.FocusLost:Connect(function()
-        local val = validateNumber(GUI.jumpInput.Text)
+    -- Jump
+    UI.jumpInput.FocusLost:Connect(function()
+        local val = validateNumber(UI.jumpInput.Text)
         if val then
-            local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-            if humanoid then
-                humanoid.JumpPower = val
+            local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum.JumpPower = val
+                print("JumpPower set to", val)
             end
         end
     end)
 
-    GUI.gravityInput.FocusLost:Connect(function()
-        local val = validateNumber(GUI.gravityInput.Text)
+    -- Gravity
+    UI.gravityInput.FocusLost:Connect(function()
+        local val = validateNumber(UI.gravityInput.Text)
         if val then
             workspace.Gravity = val
+            print("Gravity set to", val)
         end
     end)
 end
 
-setupInputs()
+setupControls()
+
+-- Placeholder for Gravity Hub integration
+local function setupGravityHub()
+    print("Insert Gravity Hub code here.")
+    -- Example:
+    -- gravityHub.Init()
+end
+setupGravityHub()
