@@ -229,3 +229,89 @@ skyBtn.MouseButton1Click:Connect(function()
 end)
 
 -- =================== end of script ===================
+-- Assuming you already have your main menu UI created,
+-- this code adds a button to the Main tab that runs your full script when clicked.
+
+-- Replace 'MainFrame' with your actual main menu container/frame variable if different
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(1, -20, 0, 50)
+button.Position = UDim2.new(0, 10, 0, 250) -- Change position as needed
+button.Text = "Run Full Script"
+button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+button.TextColor3 = Color3.new(1, 1, 1)
+button.Font = Enum.Font.SourceSansBold
+button.TextSize = 20
+button.Parent = --[YOUR MAIN MENU FRAME HERE]
+
+button.MouseButton1Click:Connect(function()
+    print("Executing your full script...")
+
+    local scriptCode = [[
+-- Paste your entire script here, exactly as you provided
+-- For clarity, I will include your script below:
+-- (Make sure the entire script is copied here as a string)
+
+--[[
+--[[
+    SimpleSpy v2.2 SOURCE
+
+    Credits:
+        exx - basically everything
+        Frosty - GUI to Lua
+]]
+
+-- shuts down the previous instance of SimpleSpy
+if _G.SimpleSpyExecuted and type(_G.SimpleSpyShutdown) == "function" then
+    _G.SimpleSpyShutdown()
+end
+
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local Highlight = loadstring(game:HttpGet("https://github.com/exxtremestuffs/SimpleSpySource/raw/master/highlight.lua"))()
+
+---- GENERATED (kinda sorta mostly) BY GUI to LUA ----
+
+-- Instances:
+
+local SimpleSpy2 = Instance.new("ScreenGui")
+local Background = Instance.new("Frame")
+local LeftPanel = Instance.new("Frame")
+local LogList = Instance.new("ScrollingFrame")
+local UIListLayout = Instance.new("UIListLayout")
+local RemoteTemplate = Instance.new("Frame")
+local ColorBar = Instance.new("Frame")
+local Text = Instance.new("TextLabel")
+local Button = Instance.new("TextButton")
+local RightPanel = Instance.new("Frame")
+local CodeBox = Instance.new("Frame")
+local ScrollingFrame = Instance.new("ScrollingFrame")
+local UIGridLayout = Instance.new("UIGridLayout")
+local FunctionTemplate = Instance.new("Frame")
+local ColorBar_2 = Instance.new("Frame")
+local Text_2 = Instance.new("TextLabel")
+local Button_2 = Instance.new("TextButton")
+local TopBar = Instance.new("Frame")
+local Simple = Instance.new("TextButton")
+local CloseButton = Instance.new("TextButton")
+local ImageLabel = Instance.new("ImageLabel")
+local MaximizeButton = Instance.new("TextButton")
+local ImageLabel_2 = Instance.new("ImageLabel")
+local MinimizeButton = Instance.new("TextButton")
+local ImageLabel_3 = Instance.new("ImageLabel")
+local ToolTip = Instance.new("Frame")
+local TextLabel = Instance.new("TextLabel")
+
+--Properties:
+-- (rest of your script)
+-- Make sure to copy your entire script here exactly as you provided
+]]
+
+    -- Run the script
+    local success, err = pcall(function()
+        loadstring(scriptCode)()
+    end)
+    if not success then
+        warn("Error executing script:", err)
+    end
+end
